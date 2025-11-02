@@ -1,28 +1,21 @@
-provider "aws" {
-  region = "ap-south-1"
-}
+name: Deploy Python App to EC2
 
-resource "null_resource" "run_python_app" {
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file("~/aws_project_pem/Always.Pem.pem")
-    host        = "3.108.215.206"   # <-- your EC2 public IP
-  }
+on:
+  workflow_dispatch:   # allows manual trigger from GitHub Actions tab
 
-  provisioner "remote-exec" {
-    inline = [
-      # Update & install Docker
-      "sudo apt update -y",
-      "sudo apt install docker.io -y",
-      "sudo systemctl start docker",
-      "sudo systemctl enable docker",
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-      # Pull official Python image
-      "sudo docker pull python:3.9",
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Run your app using mounted volume
-      "sudo docker run -d -p 5000:5000 -v /home/ubuntu/app:/app python:3.9 bash -c 'cd /app && pip install -r requirements.txt && python app.py'"
-    ]
-  }
-}
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Apply Terraform
+        run: terraform apply -auto-approve
