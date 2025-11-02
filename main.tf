@@ -51,7 +51,7 @@ resource "aws_security_group" "allow_ssh_http" {
 resource "aws_instance" "python_app_ec2" {
   ami                    = "ami-0c50b6f7dc3701ddd" # Ubuntu 22.04 (ap-south-1)
   instance_type          = "t2.micro"
-  key_name               = "Always"
+  key_name               = "Always.Pem"
   security_groups        = [aws_security_group.allow_ssh_http.name]
   associate_public_ip_address = true
 
