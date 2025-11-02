@@ -2,22 +2,27 @@ provider "aws" {
   region = "ap-south-1"
 }
 
-resource "aws_instance" "ec2" {
-  ami           = "ami-0e306788ff2473ccb"   # Ubuntu 22.04 (Mumbai)
-  instance_type = "t2.micro"
-  key_name      = "Rahul"                   # your .pem key name
-
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo apt update -y
-              sudo apt install -y docker.io
-              sudo systemctl start docker
-              sudo systemctl enable docker
-              sudo docker pull python:3.9
-              sudo docker run -d -p 80:80 python:3.9
-              EOF
-
-  tags = {
-    Name = "EC2_Git"
+resource "null_resource" "run_python_app" {
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("~/aws_project_pem/Always.Pem.pem")
+    host        = "3.108.215.206"   # <-- your EC2 public IP
   }
-}
+
+  provisioner "remote-exec" {
+    inline = [
+      # Update & install Docker
+      "sudo apt update -y",
+      "sudo apt install docker.io -y",
+      "sudo systemctl start docker",
+      "sudo systemctl enable docker",
+
+      # Pull official Python image
+      "sudo docker pull python:3.9",
+
+      # Run your app using mounted volume
+      "sudo docker run -d -p 5000:5000 -v /home/ubuntu/app:/app python:3.9 bash -c 'cd /app && pip install -r requirements.txt && python app.py'"
+    ]
+  }
+} 
