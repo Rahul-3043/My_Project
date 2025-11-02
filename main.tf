@@ -5,22 +5,23 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  required_version = ">= 1.4.0"
 }
 
 provider "aws" {
   region     = "ap-south-1"
-  access_key = var.AWS_ACCESS_KEY_ID
-  secret_key = var.AWS_SECRET_ACCESS_KEY
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
 }
 
-variable "AWS_ACCESS_KEY_ID" {}
-variable "AWS_SECRET_ACCESS_KEY" {}
-variable "DOCKER_USERNAME" {}
-variable "DOCKER_PASSWORD" {}
+variable "aws_access_key" {}
+variable "aws_secret_key" {}
 
+# 🧩 Security group allowing SSH + app port
 resource "aws_security_group" "allow_ssh_http" {
   name        = "allow_ssh_http"
-  description = "Allow SSH and HTTP inbound traffic"
+  description = "Allow SSH and port 5000"
 
   ingress {
     description = "SSH"
@@ -31,9 +32,9 @@ resource "aws_security_group" "allow_ssh_http" {
   }
 
   ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
+    description = "Flask app port"
+    from_port   = 5000
+    to_port     = 5000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -46,28 +47,20 @@ resource "aws_security_group" "allow_ssh_http" {
   }
 }
 
-resource "aws_instance" "python_app" {
-  ami           = "ami-0dee22c13ea7a9a67" # Amazon Linux 2 (Mumbai)
-  instance_type = "t2.micro"
-  key_name      = "Always"                # existing PEM key in AWS
-  security_groups = [aws_security_group.allow_ssh_http.name]
-
-  user_data = <<-EOF
-              #!/bin/bash
-              yum update -y
-              yum install -y docker
-              systemctl start docker
-              systemctl enable docker
-              docker login -u ${var.DOCKER_USERNAME} -p ${var.DOCKER_PASSWORD}
-              docker pull ${var.DOCKER_USERNAME}/python-app:latest
-              docker run -d -p 80:80 ${var.DOCKER_USERNAME}/python-app:latest
-              EOF
+# 🧱 EC2 instance using existing PEM key
+resource "aws_instance" "python_app_ec2" {
+  ami                    = "ami-0c50b6f7dc3701ddd" # Ubuntu 22.04 (ap-south-1)
+  instance_type          = "t2.micro"
+  key_name               = "Always"
+  security_groups        = [aws_security_group.allow_ssh_http.name]
+  associate_public_ip_address = true
 
   tags = {
-    Name = "12PM_Instance"
+    Name = "PythonAppServer"
   }
 }
 
-output "public_ip" {
-  value = aws_instance.python_app.public_ip
+# 🖨 Output public IP
+output "ec2_public_ip" {
+  value = aws_instance.python_app_ec2.public_ip
 }
