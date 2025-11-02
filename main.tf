@@ -18,6 +18,6 @@ resource "aws_instance" "ec2" {
               EOF
 
   tags = {
-    Name = "Terraform-EC2-Python"
+    Name = "EC2_Git"
   }
 }
