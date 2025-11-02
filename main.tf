@@ -64,7 +64,7 @@ resource "aws_instance" "python_app" {
               EOF
 
   tags = {
-    Name = "python-app-instance"
+    Name = "12PM_Instance"
   }
 }
 
