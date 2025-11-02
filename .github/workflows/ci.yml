@@ -2,22 +2,27 @@ provider "aws" {
   region = "ap-south-1"
 }
 
-resource "null_resource" "deploy_docker_image" {
+resource "null_resource" "run_python_app" {
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("~/aws_project_pem/Always.Pem.pem")
+    host        = "3.108.215.206"   # <-- your EC2 public IP
+  }
+
   provisioner "remote-exec" {
     inline = [
+      # Update & install Docker
       "sudo apt update -y",
-      "sudo apt install -y docker.io",
+      "sudo apt install docker.io -y",
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
-      "sudo docker pull your_dockerhub_username/your_image_name:latest",
-      "sudo docker run -d -p 5000:5000 your_dockerhub_username/your_image_name:latest"
-    ]
 
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      host        = "YOUR_EC2_PUBLIC_IP"
-      private_key = file("C:/Users/Rahul gitte/Downloads/AWS_PROJECT/Always.Pem.pem")
-    }
+      # Pull official Python image
+      "sudo docker pull python:3.9",
+
+      # Run your app using mounted volume
+      "sudo docker run -d -p 5000:5000 -v /home/ubuntu/app:/app python:3.9 bash -c 'cd /app && pip install -r requirements.txt && python app.py'"
+    ]
   }
 }
