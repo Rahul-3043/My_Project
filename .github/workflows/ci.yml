@@ -1,24 +1,23 @@
-name: CI-CD Pipeline
+provider "aws" {
+  region = "ap-south-1"
+}
 
-on:
-  workflow_dispatch:  # manual trigger
+resource "null_resource" "deploy_docker_image" {
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update -y",
+      "sudo apt install -y docker.io",
+      "sudo systemctl start docker",
+      "sudo systemctl enable docker",
+      "sudo docker pull your_dockerhub_username/your_image_name:latest",
+      "sudo docker run -d -p 5000:5000 your_dockerhub_username/your_image_name:latest"
+    ]
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Apply
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: terraform apply -auto-approve
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      host        = "YOUR_EC2_PUBLIC_IP"
+      private_key = file("C:/Users/Rahul gitte/Downloads/AWS_PROJECT/Always.Pem.pem")
+    }
+  }
+}
