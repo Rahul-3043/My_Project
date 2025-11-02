@@ -56,7 +56,7 @@ resource "aws_instance" "python_app_ec2" {
   associate_public_ip_address = true
 
   tags = {
-    Name = "12_PM"
+    Name = "PM_12"
   }
 }
 
