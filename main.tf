@@ -18,10 +18,10 @@ provider "aws" {
 variable "aws_access_key" {}
 variable "aws_secret_key" {}
 
-# 🧩 Security group allowing SSH + app port
 resource "aws_security_group" "allow_ssh_http" {
-  name        = "allow_ssh_http"
+  name        = "allow_ssh_http_v2"   # 👈 changed name
   description = "Allow SSH and port 5000"
+
 
   ingress {
     description = "SSH"
