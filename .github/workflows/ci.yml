@@ -1,26 +1,15 @@
 name: CI-CD Pipeline
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:  # 👈 This line enables manual trigger from GitHub Actions UI
+  workflow_dispatch:  # manual trigger
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Log in to Docker Hub
-        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u rahulgitte --password-stdin
-
-      - name: Build Docker image
-        run: docker build -t rahulgitte/myapp:latest .
-
-      - name: Push Docker image
-        run: docker push rahulgitte/myapp:latest
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
