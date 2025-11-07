@@ -40,7 +40,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_PEM_KEY }}
           script: |
             sudo apt-get update -y
             sudo apt-get install -y docker.io
