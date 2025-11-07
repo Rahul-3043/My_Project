@@ -1,10 +1,11 @@
 name: CI/CD - Docker to AWS EC2
 
+# 👇 Trigger: both manual and automatic
 on:
   push:
     branches:
       - main
-      - master
+  workflow_dispatch:
 
 jobs:
   deploy:
