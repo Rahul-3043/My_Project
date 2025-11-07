@@ -1,66 +1,21 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-
-  required_version = ">= 1.4.0"
-}
-
 provider "aws" {
-  region     = "ap-south-1"
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
+  region = "ap-south-1"
 }
 
-variable "aws_access_key" {}
-variable "aws_secret_key" {}
-
-resource "aws_security_group" "allow_ssh_http" {
-  name        = "allow_ssh_http_v2"   # 👈 changed name
-  description = "Allow SSH and port 5000"
-
-
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Flask app port"
-    from_port   = 5000
-    to_port     = 5000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# 🧱 EC2 instance using existing PEM key
-resource "aws_instance" "python_app_ec2" {
-  ami                    = "ami-0c50b6f7dc3701ddd" # Ubuntu 22.04 (ap-south-1)
-  instance_type          = "t2.micro"
-  key_name               = "Always.Pem"
-  vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
-  associate_public_ip_address = true
+resource "aws_instance" "my_ec2" {
+  ami           = "ami-0dee22c13ea7a9a67"
+  instance_type = "t2.micro"
+  key_name      = "Always.Pem"
 
   tags = {
     Name = "PM_night"
   }
-}
 
-# 🖨 Output public IP
-output "ec2_public_ip" {
-  value = aws_instance.python_app_ec2.public_ip
+  user_data = <<-EOF
+    #!/bin/bash
+    apt-get update -y
+    apt-get install -y docker.io
+    systemctl start docker
+    systemctl enable docker
+  EOF
 }
